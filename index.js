@@ -46,6 +46,6 @@ app.delete('/api/users/:id', (req, res) => {
 });
 
 if (require.main === module) {
-    app.listen(80, () => console.log('API corriendo en puerto 80'));
+    app.listen(80, () => console.log('API ya está corriendo en puerto 80'));
 }
 module.exports = app;
