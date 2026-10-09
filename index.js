@@ -7,7 +7,7 @@ const db = new sqlite3.Database(':memory:'); // Usamos memoria para pruebas ráp
 db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)");
 
 // 1. Healthcheck (Sugerido en la rúbrica)
-app.get('/api/health', (req, res) => res.status(200).json({ status: "OK 2" }));
+app.get('/api/health', (req, res) => res.status(200).json({ status: "OK 3" }));
 
 // 2. Obtener todos los usuarios
 app.get('/api/users', (req, res) => {
