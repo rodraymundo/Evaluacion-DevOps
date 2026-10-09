@@ -1,0 +1,57 @@
+name: CI/CD Pipeline API REST
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Clonar código
+      uses: actions/checkout@v3
+
+    - name: Configurar Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Instalar dependencias
+      run: npm install
+
+    - name: Ejecutar pruebas y mostrar cobertura
+      run: npm test
+
+    - name: Iniciar sesión en Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PAT }}
+
+    - name: Construir y publicar imagen Docker
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ secrets.DOCKER_USERNAME }}/api-proyecto:latest
+          ${{ secrets.DOCKER_USERNAME }}/api-proyecto:${{ github.sha }}
+
+  deploy-aws:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Desplegar en AWS EC2
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/api-proyecto:latest
+          sudo docker stop api-rest || true
+          sudo docker rm api-rest || true
+          sudo docker run -d -p 80:80 --name api-rest ${{ secrets.DOCKER_USERNAME }}/api-proyecto:latest
